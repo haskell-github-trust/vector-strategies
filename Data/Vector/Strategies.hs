@@ -16,11 +16,9 @@ import qualified Data.Vector as V
 -- 
 -- Use this along with the "parallel" package's 'using' function:
 --
--- @
---    vec `using` (parVector chunkSize)
--- @
+-- >   vec `using` (parVector chunkSize)
 --
---  This is not useful on unboxed vectors (will not provide any performance increase)
+-- `parVector` can not provide any benefits (read: no parallelism) for unboxed vectors.
 parVector :: NFData a => Int -> Strategy (V.Vector a)
 parVector minChunk vector
  | minChunk <= 0 = parVector 1 vector
