@@ -4,8 +4,9 @@ module Data.Vector.Strategies
 	, NFData, using
 	) where
 
-import Control.DeepSeq (NFData)
+import Control.DeepSeq (NFData(..))
 import Control.Parallel.Strategies
+import Control.Monad
 import qualified Data.Vector as V
 
 -- |Evaluate the elements of a boxed vector in parallel.
@@ -16,23 +17,13 @@ import qualified Data.Vector as V
 -- 
 -- Use this along with the "parallel" package's 'using' function:
 --
--- >   vec `using` (parVector chunkSize)
+-- @
+--    vec \``using`\` (`parVector` chunkSize)
+-- @
 --
--- `parVector` can not provide any benefits (read: no parallelism) for unboxed vectors.
+-- 'parVector' can not provide any benefits (read: no parallelism) for unboxed vectors!
 parVector :: NFData a => Int -> Strategy (V.Vector a)
-parVector minChunk vector
- | minChunk <= 0 = parVector 1 vector
- | otherwise = go vector
-  where
-  go vec =
-   let vLen = V.length vec
-       half = vLen `div` 2
-   in if vLen > minChunk
-       then do
-         go (V.unsafeSlice 0 half vec)
-         go (V.unsafeSlice half (vLen - half) vec)
-         return vec
-       else evalChunk (vLen-1) >> return vec
-   where
-   evalChunk (-1) = return vec
-   evalChunk i    = rpar (rdeepseq (vec V.! i)) >> evalChunk (i-1)
+parVector n = liftM V.fromList . parListChunk n rdeepseq . V.toList
+
+instance NFData a => NFData (V.Vector a) where
+  rnf = rnf . V.toList
