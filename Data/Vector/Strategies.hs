@@ -7,7 +7,8 @@ module Data.Vector.Strategies
 import Control.DeepSeq (NFData(..))
 import Control.Parallel.Strategies
 import Control.Monad
-import qualified Data.Vector as V
+import qualified Data.Vector.Generic as V
+import qualified Data.Vector as VB
 
 -- |Evaluate the elements of a boxed vector in parallel.
 --
@@ -22,8 +23,8 @@ import qualified Data.Vector as V
 -- @
 --
 -- 'parVector' can not provide any benefits (read: no parallelism) for unboxed vectors!
-parVector :: NFData a => Int -> Strategy (V.Vector a)
+parVector :: V.Vector v a => NFData a => Int -> Strategy (v a)
 parVector n = liftM V.fromList . parListChunk n rdeepseq . V.toList
 
-instance NFData a => NFData (V.Vector a) where
+instance NFData a => NFData (VB.Vector a) where
   rnf = rnf . V.toList
