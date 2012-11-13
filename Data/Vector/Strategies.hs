@@ -25,6 +25,3 @@ import qualified Data.Vector as VB
 -- 'parVector' can not provide any benefits (read: no parallelism) for unboxed vectors!
 parVector :: V.Vector v a => NFData a => Int -> Strategy (v a)
 parVector n = liftM V.fromList . parListChunk n rdeepseq . V.toList
-
-instance NFData a => NFData (VB.Vector a) where
-  rnf = rnf . V.toList
